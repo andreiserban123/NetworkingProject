@@ -5,7 +5,7 @@ import java.util.concurrent.*;
 
 public class AuctionServer {
     private static final int PORT = 8888;
-    private static final long AUCTION_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
+    private static final long AUCTION_DURATION =  60 * 1000; //1 minute
 
     private ServerSocket serverSocket;
     private Map<String, ClientHandler> clients = new ConcurrentHashMap<>();
@@ -265,13 +265,21 @@ class ClientHandler implements Runnable {
                 break;
 
             case "BID":
+                System.out.println(Arrays.toString(parts));
                 if (parts.length < 3) {
                     sendMessage("ERROR: Invalid BID command format");
                     return;
                 }
-                String productId = parts[1];
+
+                int lastColonIndex = input.lastIndexOf(':');
+                if (lastColonIndex == -1) {
+                    sendMessage("ERROR: Invalid BID command format");
+                    return;
+                }
+
+                String productId = input.substring("BID:".length(), lastColonIndex);
                 try {
-                    double bidAmount = Double.parseDouble(parts[2]);
+                    double bidAmount = Double.parseDouble(input.substring(lastColonIndex + 1));
                     server.placeBid(clientName, productId, bidAmount);
                 } catch (NumberFormatException e) {
                     sendMessage("ERROR: Invalid bid amount format");

@@ -209,31 +209,9 @@ public class AuctionClient {
             } else if (input.equalsIgnoreCase("list")) {
                 listProducts();
             } else if (input.startsWith("sell ")) {
-                String[] parts = input.substring(5).split(" ", 2);
-                if (parts.length == 2) {
-                    try {
-                        String productName = parts[0];
-                        double price = Double.parseDouble(parts[1]);
-                        out.println("SELL:" + productName + ":" + price);
-                    } catch (NumberFormatException e) {
-                        System.out.println("Invalid price format. Use decimal number.");
-                    }
-                } else {
-                    System.out.println("Usage: sell <product_name> <minimum_price>");
-                }
+                processSellCommand(input);
             } else if (input.startsWith("bid ")) {
-                String[] parts = input.substring(4).split(" ", 2);
-                if (parts.length == 2) {
-                    try {
-                        String productId = parts[0];
-                        double amount = Double.parseDouble(parts[1]);
-                        out.println("BID:" + productId + ":" + amount);
-                    } catch (NumberFormatException e) {
-                        System.out.println("Invalid bid amount format. Use decimal number.");
-                    }
-                } else {
-                    System.out.println("Usage: bid <product_id> <amount>");
-                }
+                processBidCommand(input);
             } else {
                 System.out.println("Unknown command: " + input);
             }
@@ -241,6 +219,86 @@ public class AuctionClient {
 
         close();
         scanner.close();
+    }
+
+    private void processBidCommand(String input) {
+        // Remove "bid " from the start
+        String bidInput = input.substring(4).trim();
+
+        // Find the last space to separate product ID and amount
+        int lastSpaceIndex = bidInput.lastIndexOf(' ');
+
+        if (lastSpaceIndex == -1) {
+            System.out.println("Usage: bid <product_id> <amount>");
+            return;
+        }
+
+        // Split into product ID and amount
+        String productId = bidInput.substring(0, lastSpaceIndex).trim();
+        String amountStr = bidInput.substring(lastSpaceIndex + 1).trim();
+
+        try {
+            // Normalize decimal input
+            // Replace comma with period for international number formats
+            amountStr = amountStr.replace(',', '.');
+
+            // Remove any thousands separators
+            amountStr = amountStr.replace("_", "").replace(" ", "");
+
+            // Parse the amount
+            double amount = Double.parseDouble(amountStr);
+
+            // Validate amount is positive
+            if (amount <= 0) {
+                System.out.println("Bid amount must be a positive number.");
+                return;
+            }
+
+            // Send bid to server
+            out.println("BID:" + productId + ":" + amount);
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid bid amount. Please enter a valid number.");
+        }
+    }
+
+    private void processSellCommand(String input) {
+        // Remove "sell " from the start
+        String sellInput = input.substring(5).trim();
+
+        // Find the last space to separate product name and price
+        int lastSpaceIndex = sellInput.lastIndexOf(' ');
+
+        if (lastSpaceIndex == -1) {
+            System.out.println("Usage: sell <product_name> <minimum_price>");
+            return;
+        }
+
+        // Split into product name and price
+        String productName = sellInput.substring(0, lastSpaceIndex).trim();
+        String priceStr = sellInput.substring(lastSpaceIndex + 1).trim();
+
+        try {
+            // Normalize decimal input
+            // Replace comma with period for international number formats
+            priceStr = priceStr.replace(',', '.');
+
+            // Remove any thousands separators
+            priceStr = priceStr.replace("_", "").replace(" ", "");
+
+            // Parse the price
+            double price = Double.parseDouble(priceStr);
+
+            // Validate price is positive
+            if (price <= 0) {
+                System.out.println("Minimum price must be a positive number.");
+                return;
+            }
+
+            // Send sell command to server
+            out.println("SELL:" + productName + ":" + price);
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid price. Please enter a valid number.");
+        }
     }
 
     private void listProducts() {
