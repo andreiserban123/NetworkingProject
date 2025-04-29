@@ -196,7 +196,7 @@ public class AuctionClient {
 
         System.out.println("\nCommands:");
         System.out.println("  sell <product_name> <minimum_price> - Put a product for auction");
-        System.out.println("  bid <product_id> <amount> - Bid on a product");
+        System.out.println("  bid <username>:<product_name> - Bid on a product");
         System.out.println("  list - List all available products");
         System.out.println("  exit - Exit the program");
 
